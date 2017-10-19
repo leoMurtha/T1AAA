@@ -3,6 +3,7 @@
 #include <set.h> 
 #include <queue>
 #include <algorithm>
+#include <time.h>
 
 /* L = 0, D = 1, R = 2, U = 3 */
 
@@ -49,7 +50,7 @@ bool moveTile(puzzle *p, int dir){
 }
 
 /* Calcula o custo heuristico: número de peças fora do lugar ideal */
-int heuristic_cost(puzzle p){
+int heuristicCost(puzzle p){
 	int cost = 0;
 	
 	for (int i = 0; i < 4; i++){
@@ -61,35 +62,31 @@ int heuristic_cost(puzzle p){
 	return cost-1;
 }
 
-void next_states(puzzle p,puzzle states[4],int gn){
+/* Realiza todos os próximos passos */
+void nextStates(puzzle p,puzzle states[4],int gn){
 	if(p.col-1 >= 0){
-		p.solution[gn] = 'L';
 		states[0] = p;
-		states[0].di = 'L';
+		states[0].di = 'L'; /* Salvando movimento tomado */
 		moveTile(&states[0],0);
 	}else states[0].fn = -1; /* Não pode ir nessa direção */
 
 	if(p.row+1 <= 3){
-		p.solution[gn] = 'D';
 		states[1] = p;
-		states[1].di = 'D';
+		states[1].di = 'D'; /* Salvando movimento tomado */
 		moveTile(&states[1],1);
 	}else states[1].fn = -1; /* Não pode ir nessa direção */
 
 	if(p.col+1 <= 3){
-		p.solution[gn] = 'R';
 		states[2] = p;
-		states[2].di = 'R';
+		states[2].di = 'R'; /* Salvando movimento tomado */
 		moveTile(&states[2],2);
 	}else states[2].fn = -1; /* Não pode ir nessa direção */
 
 	if(p.row-1 >= 0){
-		p.solution[gn] = 'U';
 		states[3] = p;
-		states[3].di = 'U';
+		states[3].di = 'U'; /* Salvando movimento tomado */
 		moveTile(&states[3],3);
 	}else states[3].fn = -1; /* Não pode ir nessa direção */
-
 }
 
 bool starSearch(puzzle p){
@@ -110,11 +107,9 @@ bool starSearch(puzzle p){
 		
 		if(gn >= 50) return false; /* Excedeu o limite de passos */	
 		
-		int hn = heuristic_cost(p); /* Calculando o custo */
+		int hn = heuristicCost(p); /* Calculando o custo */
 		if(!hn){
-			while(!q.empty()) q.pop();
-			for(int i = 1; i <= gn; i++)printf("%c", sol[i]);
-			printf("\n");
+			for(int i = 1; i <= gn; i++) printf("%c", sol[i]);
 			return true; /* Nenhum número fora da ordem */
 		}
 
@@ -122,10 +117,10 @@ bool starSearch(puzzle p){
 		
 		gn++;
 
-		next_states(p,states,gn); /* Calcula fn para todos os próximos passos */
+		nextStates(p,states,gn); /* Simula todos os próximos passos */
 		for(int i = 0 ; i < 4 ; i++){
 			if(states[i].fn != -1){
-				states[i].fn = gn + heuristic_cost(states[i]);
+				states[i].fn = gn + heuristicCost(states[i]);
 				q.push(states[i]);
 			}
 		}
@@ -139,7 +134,7 @@ int main(int argc, char const *argv[]){
 
 	/* N sets de puzzle */
 	scanf("%d",&N);
-
+	
 	/* Lendo 4*N sets */
 	for(int i = 0; i < N; i++){	
 		for (int j = 0; j < 4 ; j++){
@@ -154,7 +149,14 @@ int main(int argc, char const *argv[]){
 				}
 			}			
 		}
-		if(!starSearch(p)) printf("This puzzle is not solvable.\n");
+		/* Calculando tempo de execução para cada busca */
+		clock_t begin = clock();
+		if(!starSearch(p)) printf("This puzzle is not solvable.");
+		clock_t end = clock();
+		
+		double time = (double)(end - begin) / CLOCKS_PER_SEC;
+		
+		printf(" || Tempo de execução: %.4lf ||\n", time);	
 	}
 
 	return 0;
