@@ -1,0 +1,7 @@
+Busca A*:
+
+f(n) = h(n) + g(n);
+
+g(n) é a distância da raiz até o nó n
+h(n) é a distância até a meta que nesse caso é o número de peças fora do lugar
+f(n) é o custo combinado que gera o caminho até solução ótima, número de passos para resolver o puzzle
